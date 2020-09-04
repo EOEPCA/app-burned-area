@@ -1,0 +1,15 @@
+catalog:
+    id: catid
+    title: cat title
+    description: this is the cat description
+    collections:
+        - pre_event:
+            title: Pre-event acquisition
+            description: Pre-event acquisition
+            entries:
+                - https://catalog.terradue.com/sentinel2/search?uid=S2A_MSIL2A_20191201T000241_N0213_R030_T56HKG_20191201T020044
+        - post_event:
+            title: Post-event acquisition
+            description: Post-event acquisition
+            entries:
+                - https://catalog.terradue.com/sentinel2/search?uid=S2A_MSIL2A_20191231T000241_N0213_R030_T56HKG_20191231T015159

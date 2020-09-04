@@ -1,0 +1,12 @@
+name: env_burned_area
+channels:
+  - terradue
+  - conda-forge
+dependencies:
+  - pystac 
+  - ipykernel 
+  - python=3.7
+  - gdal=3.0.*
+  - numpy=1.17.*
+  - click
+
