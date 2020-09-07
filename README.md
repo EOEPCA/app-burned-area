@@ -1,94 +1,40 @@
-## terradue-s3-olci-preproc
+## EOEPCA - Burned area
 
-### Local build 
+### About this application
 
-To build this application, the requirements are:
+This is a simple application used as an artifact for testing EOEPCA release 0.2
 
-* conda=4.6.14
-* conda build 3.18
+It validates the fan-in with stage-in paradigm where Sentinel-2 acquisitions staged as STAC are processed to the burned area using NDVI and NDWI.  
 
-The best solution for the compliance with these requirements is to create a dedicated environment and avoid adding module requirements for the application environment.
+### Build the docker
 
-```bash
-conda create -y -q -n build_env 
-```
+The repo contains a Dockerfile and a Jenkinsfile.  
 
-```bash
-conda install -n build_env conda=4.6.14 conda-build cwl_runner -y -q
-```
+The build is done by Terradue's Jenkins instance with the configured job https://build.terradue.com/job/containers/job/eoepca-burned-area/
 
-Now, in the root application folder (it contains the conda.recipe folder), build the application with:
+### Create the application package
+
+Run the command below to print the CWL: 
 
 ```bash
-<path to build_env>/bin/conda build .
+docker run --rm -it docker.terradue.com/eoepca-burned-area:0.1 burned-area --docker 'docker.terradue.com/eoepca-burned-area:0.1'
 ```
 
-Note: to find the path to <path to build_env> 
+Save the CWL output to a file called `eoepca-burned-area.cwl`
+
+Package it as an application package wrapped in an Atom file with:
 
 ```bash
-conda env list
+cwl2atom eoepca-burned-area > eoepca-burned-area.atom 
 ```
 
-Checking conda version:
+Post the Atom on the EOEPCA resource manager
 
-```bash
-$ /workspace/.conda/envs/build_env/bin/conda -V
-conda 4.6.14
-```
+### Application execution
 
-### Deployment dry-run
+Use the parameters:
 
-Create a dedicated environment named env_app
-
-```bash
-conda create -y -q -n env_app 
-```
-
-In the dedicated environment, install the application built previously with:
-
-```bash
-<path to build_env>/bin/conda install -n build_env -y -n env_app -c file://<path to local build channel> -c terradue -c defaults -c conda-forge <application module> 
-```
-
-Example:
-
-```bash
-/workspace/.conda/envs/build_env/bin/conda install -y -n env_app -c file:///workspace/.conda/envs/build_env/conda-bld -c terradue -c defaults -c conda-forge s2_gefolki_multitemporal
-```
-
-Activate the environment:
-
-```bash
-conda activate env_app 
-```
-
-Print the application help:
-
-```bash
-s2-gefolki-multitemporal --help
-```
-
-Test the Ellip application descriptor generation
-
-```bash
-app-gen --stdout 
-```
-
-Test the CWL generation
-
-```bash
-cwl-gen --stdout 
-```
-
-Test the OWS Context generation
-
-```bash
-ows-gen -c dummy -d dummy --stdout 
-```
-
-To remove the env_app environment, do:
-
-```bash
-conda remove -n env_app --all 
-```
-
+* **pre_event**: https://catalog.terradue.com/sentinel2/search?uid=S2B_MSIL2A_20200130T004659_N0213_R102_T53HPA_20200130T022348
+* **post_event**: https://catalog.terradue.com/sentinel2/search?uid=S2A_MSIL2A_20191216T004701_N0213_R102_T53HPA_20191216T024808
+* **ndvi_threshold**: 0.19
+* **ndwi_threshold**: 0.18
