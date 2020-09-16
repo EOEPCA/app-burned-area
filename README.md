@@ -17,7 +17,7 @@ The build is done by Terradue's Jenkins instance with the configured job https:/
 Run the command below to print the CWL: 
 
 ```bash
-docker run --rm -it terradue/eoepca-burned-area:0.1 burned-area --docker 'terradue/eoepca-burned-area:0.1'
+docker run --rm -it terradue/eoepca-burned-area:0.1 burned-area-cwl --docker 'terradue/eoepca-burned-area:0.1'
 ```
 
 Save the CWL output to a file called `eoepca-burned-area.cwl`
