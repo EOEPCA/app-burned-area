@@ -71,7 +71,7 @@ def main(ndvi_threshold, ndwi_threshold, pre_event, post_event):
     os.environ['PROJ_LIB'] = os.path.join(os.environ['PREFIX'], 'share/proj')
     os.environ['GDAL_DATA'] = os.path.join(os.environ['PREFIX'], 'share/gdal')
     
-    logging.info(pre_event['value'], 'catalog.json')
+    logging.info(os.path.join(pre_event['value'], 'catalog.json'))
 
     cat = Catalog.from_file(os.path.join(pre_event['value'], 'catalog.json')) 
     
