@@ -36,7 +36,7 @@ ndwi_threshold = dict([('id', 'ndwi_threshold'),
 pre_event = dict([('id', 'pre_event'),
                   ('label', 'Sentinel-2 Level-2A pre-event'),
                   ('doc', 'Sentinel-2 Level-2A pre-event acquisition'),
-                  ('value', 'https://catalog.terradue.com/sentinel2/search?uid=S2A_MSIL2A_20191201T000241_N0213_R030_T56HKG_20191201T020044'), 
+                  ('value', '/workspace/data/'), 
                   ('type', 'Directory'),
                   ('stac:collection', 'pre-event'),
                   ('stac:href', 'catalog.json')])
@@ -44,7 +44,7 @@ pre_event = dict([('id', 'pre_event'),
 post_event = dict([('id', 'post_event'),
                   ('label', 'Sentinel-2 Level-2A post-event'),
                   ('doc', 'Sentinel-2 Level-2A post-event acquisition'),
-                  ('value', 'https://catalog.terradue.com/sentinel2/search?uid=S2A_MSIL2A_20191231T000241_N0213_R030_T56HKG_20191231T015159'), 
+                  ('value', '/workspace/data/'), 
                   ('type', 'Directory'),
                   ('stac:collection', 'post-event'),
                   ('stac:href', 'catalog.json')])
@@ -72,20 +72,26 @@ def main(ndvi_threshold, ndwi_threshold, pre_event, post_event):
     os.environ['GDAL_DATA'] = os.path.join(os.environ['PREFIX'], 'share/gdal')
     
     logging.info(os.path.join(pre_event['value'], 'catalog.json'))
-
-    cat = Catalog.from_file(os.path.join(pre_event['value'], 'catalog.json')) 
+    logging.info(os.path.join(post_event['value'], 'catalog.json'))
     
-    if cat is None:
+    pre_cat = Catalog.from_file(os.path.join(pre_event['value'], 'catalog.json')) 
+    post_cat = Catalog.from_file(os.path.join(post_event['value'], 'catalog.json')) 
+    
+    if pre_cat is None or post_cat is None:
         raise ValueError()
 
-    logging.info(cat.describe())
-
-    collections = []
+    logging.info(pre_cat.describe())
+    logging.info(post_cat.describe())
+    
+    collections = [pre_cat.get_child(id='pre-event'),
+                   post_cat.get_child(id='post-event')]
     dates = []
-    for col in iter(cat.get_children()):
-
-        collections.append(col)
-
+    
+    
+    for col in collections:
+        
+        logging.info(col.id)
+    
         item = next(col.get_items())
 
         dates.append(item.datetime)
@@ -127,7 +133,7 @@ def main(ndvi_threshold, ndwi_threshold, pre_event, post_event):
 
         os.remove(vrt)
     
-    ds = gdal.Open('pre_event.tif')
+    ds = gdal.Open('pre-event.tif')
 
     pre_b04 = ds.GetRasterBand(1).ReadAsArray()
     pre_b08 = ds.GetRasterBand(2).ReadAsArray()
@@ -136,9 +142,9 @@ def main(ndvi_threshold, ndwi_threshold, pre_event, post_event):
 
     ds = None
 
-    os.remove('pre_event.tif')
+    os.remove('pre-event.tif')
 
-    ds = gdal.Open('post_event.tif')
+    ds = gdal.Open('post-event.tif')
 
     post_b04 = ds.GetRasterBand(1).ReadAsArray()
     post_b08 = ds.GetRasterBand(2).ReadAsArray()
@@ -153,7 +159,7 @@ def main(ndvi_threshold, ndwi_threshold, pre_event, post_event):
 
     ds = None
 
-    os.remove('post_event.tif')
+    os.remove('post-event.tif')
     
     gain = 10000
 

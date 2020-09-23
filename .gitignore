@@ -22,3 +22,4 @@ owscontext.xml
 docker-build
 *.ipynb
 .vscode
+stac-results

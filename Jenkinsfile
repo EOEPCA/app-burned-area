@@ -1,5 +1,5 @@
 def dockerTag = 'terradue/eoepca-burned-area'
-def dockerNewVersion = 0.3
+def dockerNewVersion = 0.4
 
 pipeline {
     agent any
