@@ -73,48 +73,28 @@ def main(ndvi_threshold, ndwi_threshold, pre_event, post_event):
     
     logging.info(os.path.join(pre_event['value'], 'catalog.json'))
     logging.info(os.path.join(post_event['value'], 'catalog.json'))
-    
-    pre_cat = Catalog.from_file(os.path.join(pre_event['value'], 'catalog.json')) 
-    post_cat = Catalog.from_file(os.path.join(post_event['value'], 'catalog.json')) 
-    
-    if pre_cat is None or post_cat is None:
-        raise ValueError()
 
-    logging.info(pre_cat.describe())
-    logging.info(post_cat.describe())
+    pre_s2 = os.path.join(pre_event['value'], 'catalog.json')
+    post_s2 = os.path.join(post_event['value'], 'catalog.json')
     
-    collections = [pre_cat.get_child(id='pre-event'),
-                   post_cat.get_child(id='post-event')]
-    dates = []
+    s2_items = dict()
+
+    s2_items['pre-event'] =  get_item(pre_s2)
+    s2_items['post-event'] = get_item(post_s2)
     
-    
-    for col in collections:
+    for key, s2_item in s2_items.items():
         
-        logging.info(col.id)
-    
-        item = next(col.get_items())
-
-        dates.append(item.datetime)
-        extent=col.extent
-        geometry = item.geometry
-        bbox = item.bbox
-
-    if len(collections) == 0:
-        raise ValueError()
-    
-    for collection in collections:
-        
-        logging.info('Stacking bands for input {}'.format(collection.id))
+        logging.info('Stacking bands for input {}'.format(key))
         vrt_bands = []
 
         for band in ['B04', 'B08', 'B11', 'SCL']:
 
-            vrt_bands.append(next(collection.get_items()).assets[band].get_absolute_href())
+            vrt_bands.append(s2_item.assets[band].get_absolute_href())
 
-        vrt = '{}.vrt'.format(collection.id)
-        tif = '{}.tif'.format(collection.id)
+        vrt = '{}.vrt'.format(key)
+        tif = '{}.tif'.format(key)
 
-        logging.info('Build vrt for {}'.format(collection.id))
+        logging.info('Build vrt for {}'.format(key))
 
         ds = gdal.BuildVRT(vrt,
                            vrt_bands,
@@ -125,13 +105,14 @@ def main(ndvi_threshold, ndwi_threshold, pre_event, post_event):
         ds.FlushCache()
 
 
-        logging.info('Translate {}'.format(collection.id))
+        logging.info('Translate {}'.format(key))
 
         gdal.Translate(tif,
                        vrt,
                        outputType=gdal.GDT_UInt16)
 
         os.remove(vrt)
+    
     
     ds = gdal.Open('pre-event.tif')
 
@@ -160,7 +141,7 @@ def main(ndvi_threshold, ndwi_threshold, pre_event, post_event):
     ds = None
 
     os.remove('post-event.tif')
-    
+
     gain = 10000
 
     pre_ndwi2 = (pre_b08 / gain - pre_b11 / gain) / (pre_b08 / gain  + pre_b11 / gain)
@@ -189,15 +170,20 @@ def main(ndvi_threshold, ndwi_threshold, pre_event, post_event):
 
     pre_ndvi = None
     post_ndvi = None
-
+    
     burned[np.where((pre_scl == 0) | (post_scl == 0) | (pre_scl == 1) | (post_scl == 1) | (pre_scl == 5) | (post_scl == 5) | (pre_scl == 6) | (post_scl == 6) | (pre_scl == 7) | (post_scl == 7) | (pre_scl == 8) | (post_scl == 8) | (pre_scl == 9) | (post_scl == 9))] = 2 
-    
-    
+
+
     logging.info('Write output product')
 
-    output_name = 'S2_BURNED_AREA_{}.tif'.format('_'.join([d.strftime("%Y%m%d") for d in dates])) 
+    output_name = 'S2_BURNED_AREA_{}'.format('_'.join([s2_item.datetime.strftime("%Y%m%d")for key, s2_item in s2_items.items()])) 
 
-    write_tif(burned, output_name, width, height, input_geotransform, input_georef)
+    write_tif(burned, '{}.tif'.format(output_name),
+              width,
+              height,
+              input_geotransform,
+              input_georef)
+
     
     logging.info('Output catalog')
 
@@ -211,19 +197,16 @@ def main(ndvi_threshold, ndwi_threshold, pre_event, post_event):
     result_titles[output_name] = {'title': 'Burned area analysis from Sentinel-2',
                                   'media_type': MediaType.COG}
 
-    collection = Collection(id='s2_burned_area', 
-                            title='Sentinel-2 burned area', 
-                            description='Sentinel-2 burned area using NDVI and NDWI', 
-                            extent=extent)
+
 
     items = []
 
     for key, value in result_titles.items():
 
         result_item = Item(id=key,
-                           geometry=geometry,
-                           bbox=bbox,
-                           datetime=dates[1],
+                           geometry=s2_items['pre-event'].geometry,
+                           bbox=s2_items['pre-event'].bbox,
+                           datetime=s2_items['pre-event'].datetime,
                            properties={})
 
         result_item.add_asset(key='data',
@@ -233,21 +216,20 @@ def main(ndvi_threshold, ndwi_threshold, pre_event, post_event):
 
         items.append(result_item)
 
-    collection.add_items(items)
+    #collection.add_items(items)
 
-    catalog.add_child(collection)
+    catalog.add_items(items)
 
     catalog.describe()
 
-    catalog.normalize_and_save(root_href='stac-results',
+    catalog.normalize_and_save(root_href='./',
                                catalog_type=CatalogType.SELF_CONTAINED)
-    
 
     
-    shutil.move(output_name, 
-                os.path.join('stac-results',
-                             collection.id,
-                             output_name))
+    shutil.move('{}.tif'.format(output_name), 
+            os.path.join('./',
+                         output_name,
+                         '{}.tif'.format(output_name)))
     
     
 if __name__ == '__main__':
