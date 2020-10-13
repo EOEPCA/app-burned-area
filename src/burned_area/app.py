@@ -210,7 +210,7 @@ def main(ndvi_threshold, ndwi_threshold, pre_event, post_event):
                            properties={})
 
         result_item.add_asset(key='data',
-                              asset=Asset(href='./{}'.format(key), 
+                              asset=Asset(href='./{}.tif'.format(key), 
                               media_type=value['media_type'], 
                               title=value['title']))
 
