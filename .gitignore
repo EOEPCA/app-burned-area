@@ -12,7 +12,6 @@ dist
 build
 *.vrt
 *.geojson
-*.cwl
 .DS_Store
 *.err
 *.out

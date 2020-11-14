@@ -1,7 +1,20 @@
 import shutil
 import gdal
 import os
+from urllib.parse import urlparse
 from pystac import *
+
+def fix_asset_href(uri):
+
+    parsed = urlparse(uri)
+    
+    if parsed.scheme.startswith('http'):
+        
+        return '/vsicurl/{}'.format(uri)
+    
+    else:
+        
+        return uri
 
 def get_item(catalog):
     

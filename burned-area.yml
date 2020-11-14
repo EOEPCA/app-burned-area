@@ -1,4 +1,4 @@
-pre_event: { class: Directory, path: file:///workspace/eoepca/pde-tutorial/u9rtjt_d}
-post_event: { class: Directory, path: file:///workspace/eoepca/pde-tutorial/4il9vy2k}
+pre_event: { class: Directory, path: file:///workspace/eoepca/app-burned-area/796_31mk}
+post_event: { class: Directory, path: file:///workspace/eoepca/app-burned-area/umn3122s}
 ndvi_threshold: '0.19'
 ndwi_threshold: '0.18'

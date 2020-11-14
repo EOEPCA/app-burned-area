@@ -89,7 +89,7 @@ def main(ndvi_threshold, ndwi_threshold, pre_event, post_event):
 
         for band in ['B04', 'B08', 'B11', 'SCL']:
 
-            vrt_bands.append(s2_item.assets[band].get_absolute_href())
+            vrt_bands.append(fix_asset_href(s2_item.assets[band].get_absolute_href()))
 
         vrt = '{}.vrt'.format(key)
         tif = '{}.tif'.format(key)
