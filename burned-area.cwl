@@ -77,3 +77,4 @@ $graph:
       - results
       run: '#clt'
 cwlVersion: v1.0
+s:softwareVersion: 0.1.4
